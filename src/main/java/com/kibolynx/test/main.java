@@ -1,12 +1,12 @@
 package com.kibolynx.test;
 
 // zxing
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.LuminanceSource;
-import com.google.zxing.RGBLuminanceSource;
+import com.google.zxing.*;
+import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
 // opencv
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import org.opencv.core.Core;
 import org.opencv.objdetect.QRCodeDetector;
 import org.opencv.core.CvType;
@@ -14,6 +14,15 @@ import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
 import java.util.Scanner;
 
 public class main {
@@ -21,7 +30,9 @@ public class main {
     static{ System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
 
     // Testing code
-    public  static void main(String[] args) {
+    public  static void main(String[] args)
+            throws WriterException, IOException, NotFoundException
+    {
         System.out.println("KIBO_LYNX_TEST ------------------------------------");
 
         System.out.println("Input filename (without path)");
@@ -40,22 +51,45 @@ public class main {
 
         Mat res = undistort(img);
 
-        Imgcodecs.imwrite("result.png",res);
+        String path = "result.png";
+
+        Imgcodecs.imwrite(path,res);
 //        Mat qr = Imgcodecs.imread("qrUndistort.png", Imgcodecs.IMREAD_GRAYSCALE);
-        Mat outPoints = new Mat();
-        Mat qrCode = new Mat();
-        String decodedQR = new QRCodeDetector().detectAndDecode(res, outPoints, qrCode);
+//        Mat outPoints = new Mat();
+//        Mat qrCode = new Mat();
+//
+
+        // Crop result
+        BufferedImage image = ImageIO.read(new FileInputStream(path));
+        BufferedImage cropedImage = image.getSubimage(width/2, height/2, width/2, height/2);
+        ImageIO.write(cropedImage, "png", new File("crop.png"));
+        System.out.println("Crop succeed");
+        /// FOR READING QR CODE
+        // Path where the QR code is saved
+
+        // Encoding charset
+        String charset = "UTF-8";
+
+        Map<EncodeHintType, ErrorCorrectionLevel> hintmap
+                = new HashMap<EncodeHintType,
+                                ErrorCorrectionLevel>();
+
+        hintmap.put(EncodeHintType.ERROR_CORRECTION,
+                ErrorCorrectionLevel.L);
+
+        String decodedQR = readQR(cropedImage, charset, hintmap);
 
         System.out.println("Decoded message: " + decodedQR);
-        Imgcodecs.imwrite("points.png",outPoints);
-        Imgcodecs.imwrite("qr.png",qrCode);
+
+//        Imgcodecs.imwrite("points.png",outPoints);
+//        Imgcodecs.imwrite("qr.png",qrCode);
     }
 
     /// Algorithm. functions with minimal changes, fixes
     public static Mat undistort(Mat in) {
 
-        final int width = in.cols();
-        final int height = in.rows();
+        final int width = in.width();
+        final int height = in.cols();
 
         Mat cam_Mat = new Mat(3, 3, CvType.CV_32FC1);
         Mat dist_coeff = new Mat(1, 5, CvType.CV_32FC1);
@@ -79,8 +113,17 @@ public class main {
         return out;
     }
 
-//    public void  readQRCode(String filename) {
-//        com.google.zxing.Result result = new QRCodeReader().decode(bitmap);
-//        String data = result.getText();
-//    }
+    public static String readQR(BufferedImage cropedImage, String charset, Map hashMap)
+            throws FileNotFoundException, IOException, NotFoundException {
+
+        BinaryBitmap binaryBitmap
+                = new BinaryBitmap(new HybridBinarizer(
+                new BufferedImageLuminanceSource(cropedImage)));
+
+        Hashtable<DecodeHintType, Object> decodeHints = new Hashtable<DecodeHintType, Object>();
+        decodeHints.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
+        Result result = new MultiFormatReader().decode(binaryBitmap, decodeHints);;
+
+        return result.getText();
+    }
 }
