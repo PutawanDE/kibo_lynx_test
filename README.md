@@ -35,4 +35,5 @@ Please read the testing code before testing. You can edit code, compile and run 
 - https://stackoverflow.com/questions/15796855/java-is-not-recognized-as-an-internal-or-external-command
 - Project JDK version is not the same as Running JDK version (`java -version`) -- make sure your own java path is above Windows/System32 and other java paths
 - Cannot resolve symbol for ..... -- refer to a message in Discord
-- Can't run error : NoClassDefFoundError, unsatisfiedlinkerror, no opencv_java344 in java.library.path  --- Please check the Set up for Running section again. 
+- Can't run error : NoClassDefFoundError, unsatisfiedlinkerror, no opencv_java344 in java.library.path  --- Please check the Set up for Running section again and
+make sure your own running JDK version (`java -version`) is the same as project JDK version.
