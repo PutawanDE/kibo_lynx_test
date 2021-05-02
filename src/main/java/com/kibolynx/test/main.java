@@ -20,10 +20,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class main {
 
@@ -35,54 +32,67 @@ public class main {
     {
         System.out.println("KIBO_LYNX_TEST ------------------------------------");
 
-        System.out.println("Input filename (without path)");
+//        System.out.println("Input filename (without path)");
+//
+//        Scanner in = new Scanner(System.in);
+//
+//        String filename = in.nextLine();
+//        Mat img = Imgcodecs.imread(filename, Imgcodecs.IMREAD_GRAYSCALE);
+//
+//        final int width = img.cols();
+//        final int height = img.rows();
+//
+//        System.out.println("Image Cv Type: " + CvType.typeToString(img.type()));
+//        System.out.println("Image width: " + width);
+//        System.out.println("Image height: " + height + "\n");
 
-        Scanner in = new Scanner(System.in);
+//        Mat res = undistort(img);
 
-        String filename = in.nextLine();
-        Mat img = Imgcodecs.imread(filename, Imgcodecs.IMREAD_GRAYSCALE);
+//        String path = "result.png";
 
-        final int width = img.cols();
-        final int height = img.rows();
-
-        System.out.println("Image Cv Type: " + CvType.typeToString(img.type()));
-        System.out.println("Image width: " + width);
-        System.out.println("Image height: " + height + "\n");
-
-        Mat res = undistort(img);
-
-        String path = "result.png";
-
-        Imgcodecs.imwrite(path,res);
+//        Imgcodecs.imwrite(path,res);
 //        Mat qr = Imgcodecs.imread("qrUndistort.png", Imgcodecs.IMREAD_GRAYSCALE);
 //        Mat outPoints = new Mat();
 //        Mat qrCode = new Mat();
 //
 
         // Crop result
-        BufferedImage image = ImageIO.read(new FileInputStream(path));
-        BufferedImage cropedImage = image.getSubimage(width/2, height/2, width/2, height/2);
-        ImageIO.write(cropedImage, "png", new File("crop.png"));
-        System.out.println("Crop succeed");
+//        BufferedImage image = ImageIO.read(new FileInputStream(filename));
+//        final int width = image.getWidth();
+//        final int height = image.getHeight();
+//        BufferedImage cropedImage = image.getSubimage(300, 200, 700, 500);
+//        ImageIO.write(cropedImage, "png", new File("crop.png"));
+//        System.out.println("Crop succeed");
+//
+//        Mat img = Imgcodecs.imread("crop.png", Imgcodecs.IMREAD_GRAYSCALE);
+//        Mat res = undistort(img);
+//
+//        Imgcodecs.imwrite("crop-undistort.png",res);
+
         /// FOR READING QR CODE
         // Path where the QR code is saved
 
         // Encoding charset
-        String charset = "UTF-8";
-
-        Map<EncodeHintType, ErrorCorrectionLevel> hintmap
-                = new HashMap<EncodeHintType,
-                                ErrorCorrectionLevel>();
-
-        hintmap.put(EncodeHintType.ERROR_CORRECTION,
-                ErrorCorrectionLevel.L);
-
-        String decodedQR = readQR(cropedImage, charset, hintmap);
-
-        System.out.println("Decoded message: " + decodedQR);
+//        String charset = "UTF-8";
+//
+//        Map<EncodeHintType, ErrorCorrectionLevel> hintmap
+//                = new HashMap<EncodeHintType,
+//                                ErrorCorrectionLevel>();
+//
+//        hintmap.put(EncodeHintType.ERROR_CORRECTION,
+//                ErrorCorrectionLevel.L);
+//
+//        String decodedQR = readQR(cropedImage, charset, hintmap);
+//
+//        System.out.println("Decoded message: " + decodedQR);
 
 //        Imgcodecs.imwrite("points.png",outPoints);
 //        Imgcodecs.imwrite("qr.png",qrCode);
+
+        //Interpret QR string
+        String qrContents = "{\"p\":18,\"x\":-9.80,\"y\":-9.80,\"z\":11.09}";
+        System.out.println(qrContents);
+        System.out.println(Arrays.toString(interpretQRString(qrContents)));
     }
 
     /// Algorithm. functions with minimal changes, fixes
@@ -125,5 +135,16 @@ public class main {
         Result result = new MultiFormatReader().decode(binaryBitmap, decodeHints);;
 
         return result.getText();
+    }
+
+    private static float[] interpretQRString(String qrContents) {
+        String[] multi_contents = qrContents.split(",");
+
+        int pattern = Integer.parseInt(multi_contents[0].substring(5));
+
+        float final_x = Float.parseFloat(multi_contents[1].substring(4));
+        float final_y = Float.parseFloat(multi_contents[2].substring(4));
+        float final_z = Float.parseFloat(multi_contents[3].substring(4, multi_contents[3].length()-1));
+        return new float[] {pattern, final_x, final_y, final_z};
     }
 }
